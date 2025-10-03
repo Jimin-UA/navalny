@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обращение</title>
+    <link href="https://fonts.cdnfonts.com/css/tt-firs-neue-trial" rel="stylesheet">
+    
+    <style>
+        /* ========================================================================= */
+        /* СТИЛИ CSS */
+        /* ========================================================================= */
+
+        /* Переменные и Сброс */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --main-text-color: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.9);
+            --block-bg-color: rgba(10, 10, 10, 0.9); 
+            --preloader-color: #f1c40f; 
+            --content-width: 800px;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'TT Firs Neue Trial', 'Arial', sans-serif;
+            color: var(--main-text-color);
+            line-height: 1.6;
+            /* Устранение горизонтального скролла */
+            overflow-x: hidden; 
+        }
+        
+        /* КОНТЕЙНЕР ДЛЯ SCROLL-SNAP */
+        #content {
+            height: 100vh;
+            width: 100%; 
+            overflow-y: scroll; 
+            scroll-snap-type: y mandatory; 
+            opacity: 0; 
+            transition: opacity 0.5s ease-in;
+            max-width: 100%; 
+        }
+
+        /* Общие стили для секций (экранов) */
+        .page-section {
+            height: 100vh;
+            width: 100%; 
+            scroll-snap-align: start; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 50px 0;
+            max-width: 100%;
+        }
+
+        /* ФОН И ВИЗУАЛЬНЫЕ ЭФФЕКТЫ (Ч/Б, ВИЗНЬЕТКА) */
+        .background-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('base.jpg') no-repeat center center fixed;
+            background-size: cover;
+            filter: grayscale(100%);
+            z-index: -2;
+        }
+        
+        /* Эффект виньетки */
+        .background-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(0, 0, 0, 0.2) 40%, 
+                rgba(0, 0, 0, 0.8) 100% 
+            );
+            z-index: -1;
+        }
+
+        /* СЕКЦИЯ 1: ЗАГОЛОВОК */
+        .header-section h1 {
+            font-size: 5em;
+            font-weight: 800; 
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            text-shadow: 0 0 15px var(--shadow-color); 
+            line-height: 1;
+        }
+
+        /* СЕКЦИИ С ТЕКСТОМ */
+        .text-content {
+            max-width: var(--content-width);
+            width: 90%;
+            margin: 0 auto;
+            text-align: left; 
+        }
+
+        .main-message p {
+            font-size: 1.7em; 
+            margin-bottom: 30px;
+            font-weight: 700; 
+            text-shadow: 1px 1px 5px var(--shadow-color);
+        }
+
+        .main-message p.final-questions {
+            font-size: 2em;
+            font-weight: 800; 
+            margin-top: 50px;
+        }
+
+        .main-message p.signature {
+            font-size: 1.6em;
+            font-style: italic;
+            margin-top: 60px;
+            text-align: right;
+        }
+        
+        /* НОВАЯ СЕКЦИЯ: ГАЛЕРЕЯ */
+        .gallery-section {
+            background-color: var(--block-bg-color); 
+            text-align: center;
+        }
+
+        .gallery-section h2 {
+            font-size: 3em;
+            margin-bottom: 40px;
+            text-shadow: 0 0 10px var(--shadow-color);
+        }
+        
+        .gallery-thumbnails {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap; /* Для адаптивности */
+            margin-top: 30px;
+        }
+
+        .gallery-item {
+            cursor: pointer;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.05);
+            border-color: var(--preloader-color);
+        }
+
+        .gallery-item img {
+            width: 250px; /* Размер миниатюры */
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .gallery-item .overlay-text {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px 5px;
+            font-size: 0.9em;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover .overlay-text {
+            transform: translateY(0);
+        }
+
+        /* МОДАЛЬНОЕ ОКНО ГАЛЕРЕИ (ЛАЙТБОКС) */
+        .modal {
+            display: none; /* Скрыто по умолчанию */
+            position: fixed;
+            z-index: 10000; /* Поверх всего */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; 
+            background-color: rgba(0, 0, 0, 0.95); 
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #1a1a1a;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 1000px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; 
+        }
+        
+        .modal-image-container {
+            flex-shrink: 0; 
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #000; 
+            padding: 10px;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 70vh; 
+            display: block; 
+            margin: 0 auto;
+        }
+
+        .modal-description {
+            color: #ccc;
+            font-size: 1.1em;
+            line-height: 1.5;
+            text-align: left;
+            padding: 10px 0;
+            flex-grow: 1; 
+        }
+
+        .modal-description p {
+            margin-bottom: 1em; /* Отступы между параграфами в описании */
+        }
+        
+        .modal-description strong {
+            color: #f1c40f; /* Акцент для заголовков */
+            font-size: 1.2em;
+            display: block;
+            margin-bottom: 0.5em;
+        }
+
+        /* Кнопка закрытия модального окна */
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #f1c40f;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Кнопки навигации в модальном окне */
+        .prev-button, .next-button {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            padding: 16px;
+            margin-top: -50px;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .next-button {
+            right: 0;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .prev-button:hover, .next-button:hover {
+            background-color: rgba(241, 196, 15, 0.8);
+        }
+
+
+        /* ПРЕЛОАДЕР */
+
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #111; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 1s ease-out; 
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--preloader-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loading-text {
+            color: var(--preloader-color);
+            font-size: 1.5em;
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.5; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Медиа-запросы для лучшей адаптивности */
+        @media (max-width: 900px) {
+            .header-section h1 {
+                font-size: 3em;
+            }
+            .main-message p {
+                font-size: 1.2em;
+                margin-bottom: 20px;
+            }
+            .main-message p.final-questions {
+                font-size: 1.4em;
+            }
+            .gallery-thumbnails {
+                flex-direction: column;
+                align-items: center;
+            }
+            .gallery-item img {
+                width: 280px;
+                height: 200px;
+            }
+            .modal-content {
+                width: 95%;
+                padding: 10px;
+            }
+            .close-button {
+                right: 10px;
+                top: 5px;
+                font-size: 30px;
+            }
+            .prev-button, .next-button {
+                padding: 10px;
+                margin-top: -30px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="preloader">
+        <div class="loader"></div>
+        <div class="loading-text">Загрузка...</div>
+    </div>
+    
+    <div class="background-effect"></div>
+
+    <div id="content">
+        
+        <header class="page-section header-section">
+            <h1>Обращение</h1>
+        </header>
+
+        <main class="page-section main-message">
+            <div class="text-content">
+                <p>
+                    На данный момент мой проект — «Княжество Северного Подвязново» — вынужден быть закрыт. Причина этого — получение крайне секретной и опасной информации, которая угрожает мне лично. Для меня это решение стало болезненным ударом.
+                </p>
+                <p>
+                    Да, многие мелкие, тявкающие и злобные души будут радоваться: «Так ему и надо». Но задумайтесь сами: что сделали вы для того, чтобы поддержать независимое сообщество мнений в России? Что сделали вы, чтобы остановить разрушительные бомбардировки украинских городов? Что сделали вы, чтобы противостоять режиму, который на протяжении четверти века угнетает вас, лишает вас свободы и оставляет в нищете?
+                </p>
+            </div>
+        </main>
+        
+        <section class="page-section main-message">
+            <div class="text-content">
+                <p>
+                    И подумайте, не стали ли вы такими лишь потому, что выросли в семье, где мнение родителей было законом, а голос ребенка почти не имел значения?
+                </p>
+                <p class="final-questions">
+                    Задайте себе эти вопросы честно. Подумайте, что вы можете сделать сейчас, что реально важно и что способно изменить что-то в этом мире.
+                </p>
+                <p class="signature">
+                    Спасибо.
+                </p>
+            </div>
+        </section>
+
+        
+        <section class="page-section gallery-section">
+            <div class="text-content">
+                <p style="font-size: 1.5em; font-weight: 600; text-align: center; margin-bottom: 40px;">
+                    Возможно, позже я изменю формат и форму этой идеи. Изначально я хотел создать пространство, где можно думать свободно — без страха, без оглядки, без цензуры. Может быть, это еще впереди.
+                </p>
+                <p style="font-size: 1.5em; font-weight: 600; text-align: center;">
+                    Но посмотрите на фотографии ниже. Вглядитесь. Поймите: тем, кто до сих пор не понял, пора наконец изменить ситуацию. Пора перестать прятаться за равнодушием и оправданиями. Пора изменить позицию.
+                </p>
+                <p style="font-size: 1.5em; font-weight: 600; text-align: center; margin-top: 20px;">
+                    Начать думать. Начать действовать. С позицией мира и пацифизма. С позицией свободы человека от страданий и унижения.
+                </p>
+            </div>
+
+            <div class="gallery-thumbnails">
+                <div class="gallery-item" data-index="0">
+                    <img src="1.png" alt="Бахмут">
+                    <div class="overlay-text">Посмотреть описание</div>
+                </div>
+                <div class="gallery-item" data-index="1">
+                    <img src="2.png" alt="Мариуполь">
+                    <div class="overlay-text">Посмотреть описание</div>
+                </div>
+                <div class="gallery-item" data-index="2">
+                    <img src="3.png" alt="Буча">
+                    <div class="overlay-text">Посмотреть описание</div>
+                </div>
+            </div>
+        </section>
+
+        
+        <div id="imageModal" class="modal">
+            <span class="close-button">&times;</span>
+            <div class="modal-content">
+                <div class="modal-image-container">
+                    <img id="modalImage" class="modal-image" src="" alt="">
+                </div>
+                <div id="modalDescription" class="modal-description"></div>
+                <a class="prev-button">&#10094;</a>
+                <a class="next-button">&#10095;</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* ========================================================================= */
+        /* КОД JAVASCRIPT */
+        /* ========================================================================= */
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const preloader = document.getElementById('preloader');
+            const content = document.getElementById('content');
+            
+            // Функция, которая скрывает прелоадер и показывает контент
+            function hidePreloader() {
+                content.style.opacity = '1'; 
+                preloader.style.opacity = '0';
+                setTimeout(() => {
+                    if (preloader) preloader.remove();
+                }, 1000); 
+            }
+
+            // Прелоадер исчезает СРАЗУ, как только загрузятся все ресурсы.
+            window.addEventListener('load', function() {
+                hidePreloader();
+            });
+
+            // Fallback: Если по какой-то причине событие 'load' не сработает, 
+            // прелоадер будет скрыт через 5 секунд.
+            setTimeout(() => {
+                 if (preloader && preloader.style.opacity === '1') {
+                    hidePreloader();
+                }
+            }, 5000); 
+
+
+            // ================== ФУНКЦИОНАЛ ГАЛЕРЕИ ==================
+            const galleryItems = document.querySelectorAll('.gallery-item');
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalDescription = document.getElementById('modalDescription');
+            const closeButton = document.querySelector('.close-button');
+            const prevButton = document.querySelector('.prev-button');
+            const nextButton = document.querySelector('.next-button');
+
+            let currentImageIndex = 0;
+
+            // Данные для галереи с вашими текстами
+            const imagesData = [
+                {
+                    src: '1.png',
+                    alt: 'Бахмут',
+                    description: `
+                        <p><strong>Бахмут.</strong></p>
+                        <p>Сейчас это временно оккупированный город. От него почти ничего не осталось. Российская армия бомбила жилые кварталы, стреляла по русскоговорящим жителям, пытала и убивала людей. Эта фотография — страшная иллюстрация так называемого «русского мира».</p>
+                    `
+                },
+                {
+                    src: '2.png',
+                    alt: 'Мариуполь',
+                    description: `
+                        <p><strong>Мариуполь.</strong></p>
+                        <p>Город на берегу Азовского моря, стертый с лица земли российскими войсками. После разрушений — обещания «все отстроить». Но оказалось: ложь. На деле — смена флагов, новые вывески вместо украинских, и репрессии оккупационного режима.</p>
+                    `
+                },
+                {
+                    src: '3.png',
+                    alt: 'Буча',
+                    description: `
+                        <p><strong>Буча.</strong></p>
+                        <p>Город, ставший символом геноцида украинцев. Здесь во время оккупации мирных жителей пытали, убивали, сжигали в подвалах. На фото — уничтоженная колонна российских войск при отступлении. Пропаганда будет убеждать вас, что этого не было. Но это — доказательство, которое невозможно скрыть.</p>
+                    `
+                }
+            ];
+
+            // Открытие модального окна
+            galleryItems.forEach((item, index) => {
+                item.addEventListener('click', () => {
+                    currentImageIndex = index;
+                    showModal(currentImageIndex);
+                });
+            });
+
+            function showModal(index) {
+                const data = imagesData[index];
+                modalImage.src = data.src;
+                modalImage.alt = data.alt;
+                modalDescription.innerHTML = data.description;
+                modal.style.display = 'flex'; 
+                document.body.style.overflow = 'hidden'; 
+            }
+
+            // Закрытие модального окна
+            closeButton.addEventListener('click', () => {
+                modal.style.display = 'none';
+                document.body.style.overflow = ''; 
+            });
+
+            // Закрытие модального окна при клике вне его контента
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // Переключение изображений
+            prevButton.addEventListener('click', () => {
+                currentImageIndex = (currentImageIndex - 1 + imagesData.length) % imagesData.length;
+                showModal(currentImageIndex);
+            });
+
+            nextButton.addEventListener('click', () => {
+                currentImageIndex = (currentImageIndex + 1) % imagesData.length;
+                showModal(currentImageIndex);
+            });
+
+            // Навигация с помощью клавиш-стрелок
+            document.addEventListener('keydown', (event) => {
+                if (modal.style.display === 'flex') { 
+                    if (event.key === 'ArrowLeft') {
+                        prevButton.click();
+                    } else if (event.key === 'ArrowRight') {
+                        nextButton.click();
+                    } else if (event.key === 'Escape') {
+                        closeButton.click();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
